@@ -7,6 +7,7 @@ on:
       - "content/articles/**/*.md"
 
 permissions:
+  actions: write
   contents: write
   pull-requests: write
 
@@ -105,3 +106,10 @@ jobs:
                 ref: `heads/${pull.head.ref}`,
               }).catch((error) => core.warning(error.message));
             }
+
+            await github.rest.actions.createWorkflowDispatch({
+              owner,
+              repo,
+              workflow_id: "publish-articles.yml",
+              ref: "main",
+            });
