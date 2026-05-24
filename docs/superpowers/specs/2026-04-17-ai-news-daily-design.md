@@ -27,18 +27,22 @@
 ```
 GitHub Actions (每天 9:00 UTC+8)
      ↓
-scripts/fetch-ai-news.ts
+scripts/prepare-codex-news-issue.ts
      ↓
-采集层: RSS 解析 + 官方 API
+采集层: RSS 解析
      ↓
 过滤层: 关键词过滤产品发布/论文
      ↓
-AI 重写: MiniMax API (中文重写 500+字)
+Codex Cloud: 基于 issue 候选源生成 Markdown 文章 PR
      ↓
-发布: 写入 PostgreSQL Article 表
+PR 校验: articles:check + lint + build
+     ↓
+发布: Prisma migration + Markdown 导入 PostgreSQL Article 表
      ↓
 网站展示: 复用现有 / 页面
 ```
+
+`scripts/fetch-ai-news.ts` 保留为可选 fallback：直接调用 OpenAI Responses API / GPT-5.5 重写并写入数据库。
 
 ---
 
@@ -46,10 +50,9 @@ AI 重写: MiniMax API (中文重写 500+字)
 
 | 来源 | URL |
 |------|-----|
-| OpenAI Blog | https://news.ycombinator.com/rss |
+| OpenAI News | https://openai.com/news/rss.xml |
+| Hacker News AI | https://news.ycombinator.com/rss |
 | DeepMind | https://deepmind.google/blog/rss.xml |
-| Anthropic | https://www.anthropic.com/news/rss |
-| Meta AI | https://ai.meta.com/blog/rss/ |
 | Hugging Face | https://huggingface.co/blog/feed.xml |
 | arXiv cs.AI | http://arxiv.org/rss/cs.AI |
 | arXiv cs.CL | http://arxiv.org/rss/cs.CL |
@@ -113,7 +116,7 @@ scripts/
 ```json
 {
   "rss-parser": "^3.x",
-  "minimax-api": "via HTTP"
+  "openai-responses-api": "via HTTP"
 }
 ```
 
@@ -122,8 +125,9 @@ scripts/
 ## 环境变量
 
 ```bash
-MINIMAX_API_KEY="your-api-key"
-MINIMAX_GROUP_ID="your-group-id"
+OPENAI_API_KEY="your-api-key"
+OPENAI_MODEL="gpt-5.5"
+OPENAI_REASONING_EFFORT="medium"
 DATABASE_URL="postgresql://..."  # 复用现有
 ```
 

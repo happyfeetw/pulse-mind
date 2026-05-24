@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import Link from "next/link";
 
 interface Article {
@@ -30,11 +30,7 @@ export default function AdminArticlesPage() {
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    fetchArticles();
-  }, [filter]);
-
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
     try {
       setLoading(true);
       let url = "/api/articles?limit=100";
@@ -45,12 +41,16 @@ export default function AdminArticlesPage() {
       const data = await res.json();
       setArticles(data.articles || []);
       setError(null);
-    } catch (err) {
+    } catch {
       setError("Failed to fetch articles");
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    fetchArticles();
+  }, [fetchArticles]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("确定要删除这篇文章吗？")) return;
@@ -58,7 +58,7 @@ export default function AdminArticlesPage() {
     try {
       await fetch(`/api/articles/${id}`, { method: "DELETE" });
       fetchArticles();
-    } catch (err) {
+    } catch {
       alert("删除失败");
     }
   };
@@ -71,7 +71,7 @@ export default function AdminArticlesPage() {
         body: JSON.stringify({ published: !article.published }),
       });
       fetchArticles();
-    } catch (err) {
+    } catch {
       alert("操作失败");
     }
   };

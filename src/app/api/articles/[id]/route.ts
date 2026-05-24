@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
+import { auth } from "@/auth";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -9,13 +10,15 @@ interface RouteParams {
 // GET /api/articles/[id] - Get single article
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const session = await auth();
+    const isAdmin = session?.user?.role === "admin";
     const { id } = await params;
 
     const article = await prisma.article.findUnique({
       where: { id },
     });
 
-    if (!article) {
+    if (!article || (!isAdmin && !article.published)) {
       return NextResponse.json(
         { error: "Article not found" },
         { status: 404 }
@@ -35,6 +38,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT /api/articles/[id] - Update article
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
+    const session = await auth();
+
+    if (session?.user?.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { id } = await params;
     const body = await request.json();
     const { title, content, summary, category, tags, source, featured, published } = body;
@@ -94,6 +103,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/articles/[id] - Delete article
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const session = await auth();
+
+    if (session?.user?.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { id } = await params;
 
     const existing = await prisma.article.findUnique({

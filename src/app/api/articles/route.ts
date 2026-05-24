@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
+import { auth } from "@/auth";
 
 // GET /api/articles - List articles with pagination and filtering
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth();
+    const isAdmin = session?.user?.role === "admin";
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -20,7 +23,9 @@ export async function GET(request: NextRequest) {
       where.category = category;
     }
 
-    if (published !== null && published !== undefined) {
+    if (!isAdmin) {
+      where.published = true;
+    } else if (published !== null && published !== undefined) {
       where.published = published === "true";
     }
 
@@ -75,6 +80,12 @@ export async function GET(request: NextRequest) {
 // POST /api/articles - Create new article
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+
+    if (session?.user?.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { title, content, summary, category, tags, source, featured, published } = body;
 

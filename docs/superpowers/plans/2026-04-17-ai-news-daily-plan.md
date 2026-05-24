@@ -4,9 +4,11 @@
 
 **Goal:** 每天早上 9 点自动从 AI 公司官方渠道采集资讯，由 AI 用中文（信达雅）重写后发布到网站。
 
-**Architecture:** 使用 GitHub Actions 定时触发 Node.js 脚本，采集官方 RSS 源，通过 MiniMax API 重写内容后存入 PostgreSQL。
+**Architecture:** 主路径使用 GitHub Actions 定时采集 RSS 候选源并创建 Codex Cloud issue，由 Codex 生成 Markdown 文章 PR；PR 合并后通过 GitHub Actions 执行 Prisma migration 并导入 PostgreSQL。OpenAI Responses API / GPT-5.5 直连脚本保留为可选 fallback。
 
-**Tech Stack:** Node.js, rss-parser, MiniMax API, Prisma, GitHub Actions
+**Tech Stack:** Node.js, rss-parser, Codex Cloud, Prisma, GitHub Actions; optional OpenAI Responses API fallback
+
+> 2026-05-24 更新：实际发布链路已切换为 Codex Cloud PR-first，不消耗 OpenAI API 额度；`scripts/fetch-ai-news.ts` 仅作为直连 OpenAI fallback。下方早期 MiniMax 代码片段仅保留为历史计划背景，不再代表当前实现。
 
 ---
 
@@ -25,12 +27,13 @@ npm install rss-parser
 npm install -D @types/node tsx
 ```
 
-- [ ] **Step 2: 确认 MiniMax API 环境变量**
+- [ ] **Step 2: 确认 OpenAI API 环境变量**
 
 在 `.env.example` 中添加:
 ```bash
-MINIMAX_API_KEY="your-minimax-api-key"
-MINIMAX_GROUP_ID="your-minimax-group-id"
+OPENAI_API_KEY="your-openai-api-key"
+OPENAI_MODEL="gpt-5.5"
+OPENAI_REASONING_EFFORT="medium"
 ```
 
 - [ ] **Step 3: Commit**

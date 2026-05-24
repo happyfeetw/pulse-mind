@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PulseMind
 
-## Getting Started
+PulseMind is a personal AI news and technical writing site built with Next.js 16, Prisma, NextAuth, and PostgreSQL.
 
-First, run the development server:
+## What Is Implemented
+
+- Public pages for the home feed, docs list, article detail, about page, and settings.
+- GitHub OAuth sign-in with NextAuth.
+- Admin-only article management under `/admin`.
+- Article and comment APIs backed by Prisma.
+- Markdown article import from `content/articles/`.
+- Daily AI news request automation through GitHub Actions and Codex Cloud.
+
+## Local Setup
 
 ```bash
+npm install
+cp .env.example .env
+npx prisma generate
+npx prisma migrate dev
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app normally runs at `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Required local environment values:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `DATABASE_URL`
+- `AUTH_SECRET`
+- `AUTH_URL`
+- `NEXT_PUBLIC_APP_URL`
+- `GITHUB_CLIENT_ID`
+- `GITHUB_CLIENT_SECRET`
+- `ADMIN_GITHUB_IDS`
 
-## Learn More
+## Useful Commands
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run lint
+npm run build
+npm run articles:check
+npm run articles:import
+npm run news:codex-issue
+npm run news:fetch -- --dry-run
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Use `npm run articles:check` for content-only changes. Use `npm run news:codex-issue` to preview the GitHub issue body that asks Codex Cloud to create the daily AI article PR.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Content Workflow
 
-## Deploy on Vercel
+Daily AI articles are generated as Markdown files under `content/articles/`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The preferred production flow is:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. `Daily Codex News Request` creates or updates a daily GitHub issue with RSS candidates.
+2. Codex Cloud creates a PR containing exactly one Markdown file under `content/articles/`.
+3. `Codex News PR` validates the Markdown, lint, and build.
+4. After merge to `main`, `Publish Articles` applies Prisma migrations and imports Markdown into PostgreSQL.
+
+The direct OpenAI ingestion script `npm run news:fetch` is retained as an optional fallback and requires `OPENAI_API_KEY`.
+
+## Markdown Article Format
+
+```markdown
+---
+title: "中文标题"
+slug: "url-safe-slug"
+summary: "100 字以内摘要"
+category: "ai"
+tags:
+  - AI
+  - 资讯
+source: "https://original-source.example"
+published: true
+featured: false
+createdAt: "2026-05-24T09:00:00.000+08:00"
+---
+
+正文使用 Markdown。
+```
+
+Required frontmatter fields are `title`, `slug`, `summary`, `category`, `tags`, and `published`.
+
+## Deployment Notes
+
+For a server deployment, build and restart the Next.js process after syncing source changes:
+
+```bash
+npm install
+npx prisma generate
+npx prisma migrate deploy
+npm run build
+npm run start
+```
+
+Never commit real credentials. Keep production secrets in the deployment platform or GitHub Actions secrets.

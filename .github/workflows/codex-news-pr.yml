@@ -1,0 +1,107 @@
+name: Codex News PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "content/articles/**/*.md"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      safe_to_merge: ${{ steps.changed-files.outputs.safe_to_merge }}
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:password@localhost:5432/pulse_mind?schema=public' }}
+      AUTH_SECRET: ci-auth-secret
+      AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Validate article Markdown
+        run: npm run articles:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Check changed files for auto-merge
+        id: changed-files
+        uses: actions/github-script@v7
+        env:
+          AUTO_MERGE_CODEX_NEWS: ${{ vars.AUTO_MERGE_CODEX_NEWS || 'false' }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pull_number = context.payload.pull_request.number;
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number,
+              per_page: 100,
+            });
+            const disallowed = files
+              .map((file) => file.filename)
+              .filter((filename) => !/^content\/articles\/.+\.md$/.test(filename));
+            const safe = disallowed.length === 0;
+
+            core.setOutput("safe_to_merge", safe ? "true" : "false");
+
+            if (process.env.AUTO_MERGE_CODEX_NEWS === "true" && !safe) {
+              core.setFailed(`Auto-merge blocked by non-article files: ${disallowed.join(", ")}`);
+            } else if (!safe) {
+              core.warning(`Non-article files changed: ${disallowed.join(", ")}`);
+            }
+
+  auto-merge:
+    needs: validate
+    if: ${{ vars.AUTO_MERGE_CODEX_NEWS == 'true' && needs.validate.outputs.safe_to_merge == 'true' && github.event.pull_request.head.repo.full_name == github.repository && !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Squash merge safe Codex article PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pull = context.payload.pull_request;
+
+            await github.rest.pulls.merge({
+              owner,
+              repo,
+              pull_number: pull.number,
+              merge_method: "squash",
+              commit_title: pull.title,
+            });
+
+            if (pull.head.repo.full_name === `${owner}/${repo}`) {
+              await github.rest.git.deleteRef({
+                owner,
+                repo,
+                ref: `heads/${pull.head.ref}`,
+              }).catch((error) => core.warning(error.message));
+            }

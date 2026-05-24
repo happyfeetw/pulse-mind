@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 
@@ -17,6 +17,7 @@ interface Article {
   published: boolean;
   createdAt: string;
   updatedAt: string;
+  contentHtml?: string;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -33,23 +34,23 @@ export default function DocDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchArticle();
-  }, [slug]);
-
-  const fetchArticle = async () => {
+  const fetchArticle = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/articles/slug/${slug}`);
       if (!res.ok) throw new Error("Article not found");
       const data = await res.json();
       setArticle(data);
-    } catch (err) {
+    } catch {
       setError("文章不存在或已被删除");
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug]);
+
+  useEffect(() => {
+    fetchArticle();
+  }, [fetchArticle]);
 
   if (loading) {
     return (
@@ -190,24 +191,14 @@ export default function DocDetailPage() {
 
             {/* Content */}
             <div
+              className="prose"
               style={{
-                fontSize: 17,
-                lineHeight: 1.75,
-                color: "var(--color-charcoal-warm)",
+                overflowWrap: "break-word",
               }}
-            >
-              <pre
-                style={{
-                  whiteSpace: "pre-wrap",
-                  wordWrap: "break-word",
-                  fontFamily: "inherit",
-                  fontSize: "inherit",
-                  lineHeight: "inherit",
-                }}
-              >
-                {article.content}
-              </pre>
-            </div>
+              dangerouslySetInnerHTML={{
+                __html: article.contentHtml || "",
+              }}
+            />
 
             {/* Tags */}
             {article.tags && article.tags.length > 0 && (

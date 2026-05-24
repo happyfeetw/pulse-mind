@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function SettingsPage() {
@@ -36,7 +37,7 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error("Failed to update");
 
       setMessage({ type: "success", text: "用户名已更新" });
-    } catch (err) {
+    } catch {
       setMessage({ type: "error", text: "更新失败，请重试" });
     } finally {
       setSaving(false);
@@ -110,9 +111,12 @@ export default function SettingsPage() {
           }}
         >
           {session.user?.image ? (
-            <img
+            <Image
               src={session.user.image}
               alt={session.user.name || "User"}
+              width={64}
+              height={64}
+              unoptimized
               style={{
                 width: 64,
                 height: 64,

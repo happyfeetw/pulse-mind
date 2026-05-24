@@ -1,0 +1,82 @@
+name: Daily Codex News Request
+
+on:
+  schedule:
+    # 09:00 Asia/Shanghai
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  create-codex-issue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      NEWS_MAX_ITEMS: ${{ vars.NEWS_MAX_ITEMS || '8' }}
+      NEWS_RSS_TIMEOUT_MS: ${{ vars.NEWS_RSS_TIMEOUT_MS || '10000' }}
+      CODEX_NEWS_ARTICLE_LENGTH: ${{ vars.CODEX_NEWS_ARTICLE_LENGTH || '900-1200 Chinese characters' }}
+      CODEX_NEWS_TARGET_DIR: ${{ vars.CODEX_NEWS_TARGET_DIR || 'content/articles' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare Codex issue body
+        run: npm run --silent news:codex-issue > codex-news-issue.md
+
+      - name: Create or update Codex issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("node:fs");
+
+            function shanghaiDate() {
+              return new Intl.DateTimeFormat("sv-SE", {
+                timeZone: "Asia/Shanghai",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              }).format(new Date());
+            }
+
+            const { owner, repo } = context.repo;
+            const title = `Daily AI Article Request - ${shanghaiDate()}`;
+            const body = fs.readFileSync("codex-news-issue.md", "utf8");
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: "open",
+              per_page: 100,
+            });
+            const existing = issues.find((issue) => issue.title === title && !issue.pull_request);
+
+            if (existing) {
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: existing.number,
+                body,
+              });
+              core.info(`Updated issue #${existing.number}`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner,
+                repo,
+                title,
+                body,
+              });
+              core.info(`Created issue #${created.data.number}`);
+            }

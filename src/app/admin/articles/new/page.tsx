@@ -49,7 +49,7 @@ export default function NewArticlePage() {
       }
 
       router.push("/admin/articles");
-    } catch (err) {
+    } catch {
       setError("创建文章失败，请重试");
     } finally {
       setLoading(false);

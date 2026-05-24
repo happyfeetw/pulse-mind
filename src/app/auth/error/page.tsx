@@ -1,23 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 
-export default function AuthErrorPage() {
+function ErrorContent() {
   const searchParams = useSearchParams();
-  const error = searchParams.get("error");
-
-  const errorMessages: Record<string, string> = {
-    OAuthSignin: "尝试构建 OAuth 签名时出错",
-    OAuthCallback: "OAuth 回调出错",
-    OAuthAccountNotLinked: "该邮箱已被其他账号绑定",
-    Callback: "Callback 出错",
-    AccessDenied: "访问被拒绝",
-    Verification: "验证链接已过期或已使用",
-    Default: "认证失败",
-  };
-
-  const message = error ? (errorMessages[error] || errorMessages.Default) : errorMessages.Default;
+  const error = searchParams.get("error") || "unknown";
 
   return (
     <div
@@ -26,62 +14,84 @@ export default function AuthErrorPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#f5f4ed",
+        background: "var(--color-parchment)",
         padding: "24px",
       }}
     >
       <div
         style={{
+          width: "100%",
           maxWidth: 400,
           padding: 32,
-          background: "#faf9f5",
-          border: "1px solid #f0eee6",
+          background: "var(--color-ivory)",
+          border: "1px solid var(--color-border-cream)",
           borderRadius: 16,
           textAlign: "center",
         }}
       >
         <div
           style={{
-            fontSize: 48,
-            marginBottom: 16,
+            width: 64,
+            height: 64,
+            borderRadius: "50%",
+            background: "#d32f2f",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 16px",
+            fontSize: 28,
           }}
         >
-          ⚠️
+          ✕
         </div>
         <h1
           style={{
-            fontFamily: "Georgia, serif",
+            fontFamily: "var(--font-serif)",
             fontSize: 24,
-            color: "#141413",
+            fontWeight: 500,
+            color: "var(--color-near-black)",
             marginBottom: 8,
           }}
         >
-          认证失败
+          登录失败
         </h1>
         <p
           style={{
-            color: "#5e5d59",
-            marginBottom: 24,
             fontSize: 14,
+            color: "var(--color-olive-gray)",
+            marginBottom: 24,
           }}
         >
-          {message}
+          错误: {error}
         </p>
-        <Link
+        <a
           href="/auth/signin"
           style={{
             display: "inline-block",
-            padding: "10px 20px",
-            background: "#c96442",
-            color: "white",
-            borderRadius: 8,
-            fontSize: 14,
+            padding: "12px 24px",
+            fontSize: 15,
             fontWeight: 500,
+            background: "var(--color-near-black)",
+            color: "var(--color-ivory)",
+            borderRadius: 10,
+            textDecoration: "none",
           }}
         >
-          重新登录
-        </Link>
+          返回登录页
+        </a>
       </div>
     </div>
+  );
+}
+
+export default function ErrorPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p>加载中...</p>
+      </div>
+    }>
+      <ErrorContent />
+    </Suspense>
   );
 }

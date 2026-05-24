@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { categories } from "@/lib/utils";
@@ -40,11 +40,7 @@ export default function EditArticlePage() {
   });
   const [showPreview, setShowPreview] = useState(false);
 
-  useEffect(() => {
-    fetchArticle();
-  }, [id]);
-
-  const fetchArticle = async () => {
+  const fetchArticle = useCallback(async () => {
     try {
       const res = await fetch(`/api/articles/${id}`);
       if (!res.ok) throw new Error("Article not found");
@@ -60,12 +56,16 @@ export default function EditArticlePage() {
         featured: article.featured,
         published: article.published,
       });
-    } catch (err) {
+    } catch {
       setError("获取文章失败");
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchArticle();
+  }, [fetchArticle]);
 
   const handleSubmit = async (publish?: boolean) => {
     setSaving(true);
@@ -90,7 +90,7 @@ export default function EditArticlePage() {
       if (!res.ok) throw new Error("Update failed");
 
       router.push("/admin/articles");
-    } catch (err) {
+    } catch {
       setError("保存文章失败，请重试");
     } finally {
       setSaving(false);
