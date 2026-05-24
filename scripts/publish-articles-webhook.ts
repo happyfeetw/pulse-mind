@@ -33,8 +33,10 @@ async function listMarkdownFiles(dir: string): Promise<string[]> {
 
 async function main() {
   const files = await listMarkdownFiles(articlesDir);
+  const shouldVerifyWebhook =
+    files.length > 0 || process.env.CI === "true" || Boolean(endpoint || secret);
 
-  if (files.length === 0) {
+  if (files.length === 0 && !shouldVerifyWebhook) {
     console.log("No Markdown articles found.");
     return;
   }
@@ -45,6 +47,10 @@ async function main() {
 
   if (!secret) {
     throw new Error("ARTICLE_IMPORT_SECRET is required");
+  }
+
+  if (files.length === 0) {
+    console.log("No Markdown articles found; verifying import endpoint.");
   }
 
   const articles = await Promise.all(
