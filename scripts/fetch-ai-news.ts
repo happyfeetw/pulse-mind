@@ -39,6 +39,7 @@ interface OpenAIRequestBody {
 const rssTimeoutMs = Number(process.env.NEWS_RSS_TIMEOUT_MS || "10000");
 const dryRun = process.argv.includes("--dry-run");
 const maxItems = Number(process.env.NEWS_MAX_ITEMS || "5");
+const maxItemsPerSource = Number(process.env.NEWS_MAX_ITEMS_PER_SOURCE || "3");
 const shouldPublish = process.env.PUBLISH_NEWS !== "false";
 const openaiApiKey = process.env.OPENAI_API_KEY;
 const openaiModel = process.env.OPENAI_MODEL || "gpt-5.5";
@@ -202,7 +203,7 @@ async function publishArticle(news: NewsItem, rewritten: RewriteResult) {
 }
 
 async function main() {
-  const items = await fetchAllNewsFeeds({ maxItems, rssTimeoutMs });
+  const items = await fetchAllNewsFeeds({ maxItems, maxItemsPerSource, rssTimeoutMs });
   console.log(`Fetched ${items.length} candidate items`);
 
   if (dryRun) {

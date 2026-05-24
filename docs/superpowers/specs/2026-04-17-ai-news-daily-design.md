@@ -7,7 +7,7 @@
 
 ## 目标
 
-每天早上 9 点自动从各大 AI 公司官方渠道采集资讯，由 AI 用中文（信达雅）重写后发布到网站。
+每天早上 9 点自动从官方博客、主流科技媒体、工程社区、中文资讯入口、论文源和高质量技术博客中采集 AI 候选信息，由 Codex Cloud 生成中文 AI 精选简报 PR。目标不是复述单条新闻，而是帮助读者快速理解最新、最有质量、最有用的 AI 动态。
 
 ---
 
@@ -15,8 +15,12 @@
 
 | 类型 | 来源示例 |
 |------|---------|
-| 产品发布 | OpenAI、Google DeepMind、Anthropic、Meta AI 等官方博客/RSS |
-| 技术论文 | arXiv cs.AI、cs.CL、Hugging Face 论文更新 |
+| 官方发布 | OpenAI、Google DeepMind、Hugging Face 等官方博客/RSS |
+| 工程与创业社区 | Hacker News |
+| 主流科技媒体 | The Verge AI、TechCrunch AI |
+| 中文 AI 资讯 | 量子位 |
+| 技术论文 | arXiv cs.AI、cs.CL |
+| 高质量技术博客 | BestBlogs.dev |
 
 **降级策略**：无产品/论文时，收集 Reddit r/MachineLearning、HN AI 频道等社区动态。
 
@@ -52,8 +56,12 @@ PR 校验: articles:check + lint + build
 |------|-----|
 | OpenAI News | https://openai.com/news/rss.xml |
 | Hacker News AI | https://news.ycombinator.com/rss |
+| The Verge AI | https://www.theverge.com/rss/ai-artificial-intelligence/index.xml |
+| TechCrunch AI | https://techcrunch.com/category/artificial-intelligence/feed/ |
+| QbitAI | https://qbitai.com/feed |
 | DeepMind | https://deepmind.google/blog/rss.xml |
 | Hugging Face | https://huggingface.co/blog/feed.xml |
+| BestBlogs.dev | https://www.bestblogs.dev/en/feeds/rss |
 | arXiv cs.AI | http://arxiv.org/rss/cs.AI |
 | arXiv cs.CL | http://arxiv.org/rss/cs.CL |
 
@@ -63,8 +71,9 @@ PR 校验: articles:check + lint + build
 
 - **语言**: 简体中文（中文重写，非直译）
 - **风格**: 信达雅，用词准确
-- **长度**: 500 字以上
-- **结构**: 标题 + 正文 + 来源链接
+- **长度**: 1200-1800 中文字符
+- **结构**: 开头 + 3-5 个精选条目 + 结尾
+- **要求**: 每个条目说明发生了什么、为什么重要、谁该关注、实际启发是什么，并在正文中包含来源链接
 - **字段映射**:
   - `title` → 重写后的中文标题
   - `content` → 重写后的正文 (Markdown)

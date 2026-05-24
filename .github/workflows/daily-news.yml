@@ -16,9 +16,10 @@ jobs:
     timeout-minutes: 15
 
     env:
-      NEWS_MAX_ITEMS: ${{ vars.NEWS_MAX_ITEMS || '8' }}
+      NEWS_MAX_ITEMS: ${{ vars.NEWS_MAX_ITEMS || '12' }}
+      NEWS_MAX_ITEMS_PER_SOURCE: ${{ vars.NEWS_MAX_ITEMS_PER_SOURCE || '3' }}
       NEWS_RSS_TIMEOUT_MS: ${{ vars.NEWS_RSS_TIMEOUT_MS || '10000' }}
-      CODEX_NEWS_ARTICLE_LENGTH: ${{ vars.CODEX_NEWS_ARTICLE_LENGTH || '900-1200 Chinese characters' }}
+      CODEX_NEWS_ARTICLE_LENGTH: ${{ vars.CODEX_NEWS_ARTICLE_LENGTH || '1200-1800 Chinese characters' }}
       CODEX_NEWS_TARGET_DIR: ${{ vars.CODEX_NEWS_TARGET_DIR || 'content/articles' }}
 
     steps:

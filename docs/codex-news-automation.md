@@ -43,14 +43,25 @@
 
 进入 `Settings -> Secrets and variables -> Actions -> Variables`，可选添加：
 
-- `NEWS_MAX_ITEMS`：每天候选新闻数量，默认 `8`。
+- `NEWS_MAX_ITEMS`：每天候选新闻数量，默认 `12`。
+- `NEWS_MAX_ITEMS_PER_SOURCE`：每个来源最多进入候选池的数量，默认 `3`，用于避免单个高频来源刷屏。
 - `NEWS_RSS_TIMEOUT_MS`：RSS 请求超时，默认 `10000`。
-- `CODEX_NEWS_ARTICLE_LENGTH`：文章长度要求，默认 `900-1200 Chinese characters`。
+- `CODEX_NEWS_ARTICLE_LENGTH`：文章长度要求，默认 `1200-1800 Chinese characters`。
 - `CODEX_NEWS_TARGET_DIR`：文章目录，默认 `content/articles`。
 - `AUTO_MERGE_CODEX_NEWS`：设为 `true` 后，纯文章 PR 在校验通过后会自动 squash merge。
 - `ARTICLE_IMPORT_URL`：可选，默认可使用 `https://blog.badger-tech.fun/api/internal/articles/import`。
 
 建议先不启用 `AUTO_MERGE_CODEX_NEWS`。手动观察 2-3 天后，如果内容质量稳定，再设为 `true`。
+
+## 当前信息源
+
+- Hacker News：观察全球工程师、创业者讨论的新工具、新论文、新产品和技术争议。
+- The Verge AI：覆盖 AI 产品、公司动态、行业争议和科技趋势。
+- TechCrunch AI：偏创业、融资、产品和公司层面。
+- 量子位：中文 AI 前沿资讯入口，跟进国内外模型、应用、论文和公司动态。
+- arXiv cs.AI / cs.CL：靠近技术源头，用摘要、方法、实验和结论抓研究重点。
+- BestBlogs.dev：发现新闻之外的高质量工程师、研究员和创业者长文。
+- OpenAI、DeepMind、Hugging Face：补充官方产品、模型、研究和平台动态。
 
 ### 5. 部署平台
 
