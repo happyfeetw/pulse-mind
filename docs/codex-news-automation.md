@@ -5,7 +5,7 @@
 1. GitHub Actions 每天抓取 RSS 候选源，并创建一个包含 `@codex` 的 issue。
 2. Codex Cloud 根据 issue 创建文章 PR，只提交 `content/articles/*.md`。
 3. PR workflow 校验 Markdown、运行 lint/build，并可选自动合并。
-4. PR 合并到 `main` 后，发布 workflow 先执行 Prisma migration，再把 Markdown 文章导入生产数据库。
+4. PR 合并到 `main` 后，服务器定时任务拉取 `main`，执行 Prisma migration，把 Markdown 文章导入生产数据库，并重建重启站点。
 
 ## 你需要配置的内容
 
@@ -33,13 +33,7 @@
 
 ### 3. GitHub Secrets
 
-进入 `Settings -> Secrets and variables -> Actions -> Secrets`，添加：
-
-- `PULSE_MIND_DEPLOY_HOST`：生产服务器地址，例如 `112.124.9.244`。
-- `PULSE_MIND_DEPLOY_USER`：生产服务器 SSH 用户，例如 `root`。
-- `PULSE_MIND_DEPLOY_KEY`：只用于 PulseMind 发布 workflow 的 SSH 私钥。
-
-不要把 `OPENAI_API_KEY` 作为必需项。当前 Codex Cloud 路线不需要它。
+当前 Codex Cloud 路线不需要 `OPENAI_API_KEY`。生产 PostgreSQL 不对公网开放，因此 GitHub Actions 也不需要 `DATABASE_URL` 或 SSH 私钥；发布由服务器本机定时任务完成。
 
 ### 4. GitHub Variables
 
@@ -55,9 +49,15 @@
 
 ### 5. 部署平台
 
-当前自托管服务器上的 PostgreSQL 不对公网开放。`publish-articles.yml` 会通过 SSH 登录服务器，在 `/var/www/pulse-mind` 内执行 `git pull --ff-only`、Prisma migration、Markdown 导入、生产构建和 PM2 重启。
+当前自托管服务器上的 PostgreSQL 不对公网开放。服务器 cron 定时执行：
 
-如果后续迁移到 Vercel 或其他自动部署平台，可以移除 SSH 步骤，改为平台 token 或 webhook。
+```bash
+/var/www/pulse-mind/scripts/deploy/publish-articles-server.sh
+```
+
+该脚本在 `/var/www/pulse-mind` 内执行 `git pull --ff-only`、Prisma migration、Markdown 导入、生产构建和 PM2 重启。
+
+如果后续迁移到 Vercel 或其他自动部署平台，可以移除服务器 poller，改为平台 token 或 webhook。
 
 ## 日常操作
 

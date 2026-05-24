@@ -15,43 +15,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  import-articles:
+  server-poller-note:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 2
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Configure SSH
-        env:
-          DEPLOY_HOST: ${{ secrets.PULSE_MIND_DEPLOY_HOST }}
-          DEPLOY_KEY: ${{ secrets.PULSE_MIND_DEPLOY_KEY }}
-          DEPLOY_USER: ${{ secrets.PULSE_MIND_DEPLOY_USER }}
+      - name: Explain production publishing
         run: |
-          test -n "$DEPLOY_HOST"
-          test -n "$DEPLOY_KEY"
-          test -n "$DEPLOY_USER"
-          mkdir -p ~/.ssh
-          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/pulse_mind_deploy
-          chmod 600 ~/.ssh/pulse_mind_deploy
-          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
-
-      - name: Import articles on production server
-        env:
-          DEPLOY_HOST: ${{ secrets.PULSE_MIND_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.PULSE_MIND_DEPLOY_USER }}
-        run: |
-          ssh -i ~/.ssh/pulse_mind_deploy "$DEPLOY_USER@$DEPLOY_HOST" <<'REMOTE'
-            set -euo pipefail
-            cd /var/www/pulse-mind
-            git fetch origin main
-            git pull --ff-only origin main
-            npm ci
-            npx prisma generate
-            npx prisma migrate deploy
-            npm run articles:check
-            npm run articles:import
-            npm run build
-            pm2 restart pulse-mind
-          REMOTE
+          echo "Production publishing is handled by the server-side poller:"
+          echo "/var/www/pulse-mind/scripts/deploy/publish-articles-server.sh"
+          echo "The poller keeps PostgreSQL private to the production server."
