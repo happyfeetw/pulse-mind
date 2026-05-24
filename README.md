@@ -32,6 +32,7 @@ Required local environment values:
 - `GITHUB_CLIENT_ID`
 - `GITHUB_CLIENT_SECRET`
 - `ADMIN_GITHUB_IDS`
+- `ARTICLE_IMPORT_SECRET`
 
 ## Useful Commands
 
@@ -55,7 +56,7 @@ The preferred production flow is:
 1. `Daily Codex News Request` creates or updates a daily GitHub issue with RSS candidates.
 2. Codex Cloud creates a PR containing exactly one Markdown file under `content/articles/`.
 3. `Codex News PR` validates the Markdown, lint, and build.
-4. After merge to `main`, the production server poller pulls `main`, applies Prisma migrations, imports Markdown into PostgreSQL, rebuilds, and restarts PM2.
+4. After merge to `main`, `Publish Articles` validates Markdown and imports it through the production HTTPS import webhook.
 
 The direct OpenAI ingestion script `npm run news:fetch` is retained as an optional fallback and requires `OPENAI_API_KEY`.
 

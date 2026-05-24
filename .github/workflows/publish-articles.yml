@@ -15,13 +15,29 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  server-poller-note:
+  import-articles:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 15
+
+    env:
+      ARTICLE_IMPORT_SECRET: ${{ secrets.ARTICLE_IMPORT_SECRET }}
+      ARTICLE_IMPORT_URL: ${{ vars.ARTICLE_IMPORT_URL || 'https://blog.badger-tech.fun/api/internal/articles/import' }}
 
     steps:
-      - name: Explain production publishing
-        run: |
-          echo "Production publishing is handled by the server-side poller:"
-          echo "/var/www/pulse-mind/scripts/deploy/publish-articles-server.sh"
-          echo "The poller keeps PostgreSQL private to the production server."
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate article Markdown
+        run: npm run articles:check
+
+      - name: Import articles through production webhook
+        run: npm run articles:publish:webhook

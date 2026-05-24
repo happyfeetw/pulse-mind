@@ -9,6 +9,7 @@
     "lint": "eslint",
     "articles:check": "tsx scripts/import-articles.ts --dry-run",
     "articles:import": "tsx scripts/import-articles.ts",
+    "articles:publish:webhook": "tsx scripts/publish-articles-webhook.ts",
     "news:codex-issue": "tsx scripts/prepare-codex-news-issue.ts",
     "news:fetch": "tsx scripts/fetch-ai-news.ts"
   },

@@ -5,7 +5,7 @@
 1. GitHub Actions 每天抓取 RSS 候选源，并创建一个包含 `@codex` 的 issue。
 2. Codex Cloud 根据 issue 创建文章 PR，只提交 `content/articles/*.md`。
 3. PR workflow 校验 Markdown、运行 lint/build，并可选自动合并。
-4. PR 合并到 `main` 后，服务器定时任务拉取 `main`，执行 Prisma migration，把 Markdown 文章导入生产数据库，并重建重启站点。
+4. PR 合并到 `main` 后，发布 workflow 校验 Markdown，并通过线上站点的内部 HTTPS webhook 导入生产数据库。
 
 ## 你需要配置的内容
 
@@ -33,7 +33,11 @@
 
 ### 3. GitHub Secrets
 
-当前 Codex Cloud 路线不需要 `OPENAI_API_KEY`。生产 PostgreSQL 不对公网开放，因此 GitHub Actions 也不需要 `DATABASE_URL` 或 SSH 私钥；发布由服务器本机定时任务完成。
+当前 Codex Cloud 路线不需要 `OPENAI_API_KEY`。生产 PostgreSQL 不对公网开放，因此 GitHub Actions 不需要 `DATABASE_URL` 或 SSH 私钥。
+
+需要添加：
+
+- `ARTICLE_IMPORT_SECRET`：和生产服务器 `.env` 中一致的内部导入密钥。
 
 ### 4. GitHub Variables
 
@@ -44,20 +48,15 @@
 - `CODEX_NEWS_ARTICLE_LENGTH`：文章长度要求，默认 `900-1200 Chinese characters`。
 - `CODEX_NEWS_TARGET_DIR`：文章目录，默认 `content/articles`。
 - `AUTO_MERGE_CODEX_NEWS`：设为 `true` 后，纯文章 PR 在校验通过后会自动 squash merge。
+- `ARTICLE_IMPORT_URL`：可选，默认可使用 `https://blog.badger-tech.fun/api/internal/articles/import`。
 
 建议先不启用 `AUTO_MERGE_CODEX_NEWS`。手动观察 2-3 天后，如果内容质量稳定，再设为 `true`。
 
 ### 5. 部署平台
 
-当前自托管服务器上的 PostgreSQL 不对公网开放。服务器 cron 定时执行：
+当前自托管服务器上的 PostgreSQL 不对公网开放。`publish-articles.yml` 不直接连接数据库，而是向线上站点的内部导入接口发送 Markdown 内容，由站点进程在服务器本地写入 PostgreSQL。
 
-```bash
-/var/www/pulse-mind/scripts/deploy/publish-articles-server.sh
-```
-
-该脚本在 `/var/www/pulse-mind` 内执行 `git pull --ff-only`、Prisma migration、Markdown 导入、生产构建和 PM2 重启。
-
-如果后续迁移到 Vercel 或其他自动部署平台，可以移除服务器 poller，改为平台 token 或 webhook。
+如果后续迁移到 Vercel 或其他自动部署平台，可以继续沿用 webhook 方式，只要目标环境能访问同一 PostgreSQL。
 
 ## 日常操作
 
