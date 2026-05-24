@@ -55,10 +55,9 @@ Source selection:
   - one-sentence social posts unless they point to a concrete tool, repo, metric, production constraint, or developer workflow
 
 Required article structure:
-1. Opening paragraph:
-   - Briefly state what this radar covers in this time window.
-   - Do not make grand claims like "AI is entering a new era".
-2. Curated items:
+1. Curated items:
+   - Start directly with the first curated item after the frontmatter.
+   - Do not write an opening paragraph, editor's note, column note, format explanation, or transition paragraph.
    - Use 4 to 7 short sections.
    - Each section covers exactly one selected item.
    - Start each section title with one label from:
@@ -73,9 +72,9 @@ Required article structure:
      - What is the useful technical detail?
      - Why should software engineers care?
      - What should readers read, try, monitor, or avoid next?
-3. Closing paragraph:
-   - Summarize the most practical engineering signals from the selected items.
-   - Do not end with generic optimism.
+2. No closing summary:
+   - Do not add a closing paragraph.
+   - End after the final curated item and its engineering takeaway.
 
 Source grounding:
 - Use only the candidate sources provided below.
@@ -89,6 +88,16 @@ Source grounding:
 Style:
 - Clear, concise, editorial.
 - Write like a senior software engineer curating useful links for other engineers, not like a marketing writer or industry analyst.
+- Do not include meta commentary about the article format, editorial intent, issue window, source selection, or what the article is not.
+- Do not use phrases such as:
+  - 这期雷达
+  - 本期雷达
+  - 本文覆盖
+  - 下面不是
+  - 这不是
+  - 可读、可试、可跟进
+  - 工程清单
+  - 本文/本篇/这篇文章
 - Use engineering vocabulary only when it clarifies the point. Avoid jargon-padding.
 - Avoid hype, slogans, and vague abstractions.
 - Avoid these phrases unless backed by concrete facts:
@@ -138,6 +147,7 @@ Self-review before opening the PR:
 - Does it select 4 to 7 useful items, or fewer only when the source pool is weak?
 - Does it cover practical software-engineering interests, especially AI applications, large models, coding agents, frontend, or backend development?
 - Does it read like a curated engineering reading digest rather than a forced single-theme essay?
+- Does it start directly with the first item and avoid all meta commentary about the article format?
 - Does each selected item have a practical engineering takeaway?
 - Are all factual claims grounded in the provided sources?
 - Did it avoid generic trend commentary?
