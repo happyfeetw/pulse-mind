@@ -55,7 +55,7 @@ The preferred production flow is:
 1. `Daily Codex News Request` creates or updates a daily GitHub issue with RSS candidates.
 2. Codex Cloud creates a PR containing exactly one Markdown file under `content/articles/`.
 3. `Codex News PR` validates the Markdown, lint, and build.
-4. After merge to `main`, `Publish Articles` applies Prisma migrations and imports Markdown into PostgreSQL.
+4. After merge to `main`, `Publish Articles` SSHes into the production server, pulls `main`, applies Prisma migrations, imports Markdown into PostgreSQL, rebuilds, and restarts PM2.
 
 The direct OpenAI ingestion script `npm run news:fetch` is retained as an optional fallback and requires `OPENAI_API_KEY`.
 
@@ -93,4 +93,4 @@ npm run build
 npm run start
 ```
 
-Never commit real credentials. Keep production secrets in the deployment platform or GitHub Actions secrets.
+Never commit real credentials. Keep production secrets in the deployment platform or GitHub Actions secrets. The self-hosted publish workflow needs `PULSE_MIND_DEPLOY_HOST`, `PULSE_MIND_DEPLOY_USER`, and `PULSE_MIND_DEPLOY_KEY`.

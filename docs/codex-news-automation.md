@@ -35,7 +35,9 @@
 
 进入 `Settings -> Secrets and variables -> Actions -> Secrets`，添加：
 
-- `DATABASE_URL`：生产 PostgreSQL 连接串，供 `npm run articles:import` 使用。
+- `PULSE_MIND_DEPLOY_HOST`：生产服务器地址，例如 `112.124.9.244`。
+- `PULSE_MIND_DEPLOY_USER`：生产服务器 SSH 用户，例如 `root`。
+- `PULSE_MIND_DEPLOY_KEY`：只用于 PulseMind 发布 workflow 的 SSH 私钥。
 
 不要把 `OPENAI_API_KEY` 作为必需项。当前 Codex Cloud 路线不需要它。
 
@@ -53,9 +55,9 @@
 
 ### 5. 部署平台
 
-如果 Vercel 或其他平台已经监听 `main` 分支自动部署，不需要额外配置。`publish-articles.yml` 只负责执行数据库 migration 并把文章导入数据库。
+当前自托管服务器上的 PostgreSQL 不对公网开放。`publish-articles.yml` 会通过 SSH 登录服务器，在 `/var/www/pulse-mind` 内执行 `git pull --ff-only`、Prisma migration、Markdown 导入、生产构建和 PM2 重启。
 
-如果你的部署平台不会自动部署，需要额外添加平台 token 或 webhook，并在 `.github/workflows/publish-articles.yml` 的 `Import articles to database` 后面加部署步骤。
+如果后续迁移到 Vercel 或其他自动部署平台，可以移除 SSH 步骤，改为平台 token 或 webhook。
 
 ## 日常操作
 
