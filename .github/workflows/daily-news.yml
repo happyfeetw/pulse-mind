@@ -2,8 +2,8 @@ name: Daily Codex News Request
 
 on:
   schedule:
-    # 09:00 Asia/Shanghai
-    - cron: "0 1 * * *"
+    # 00:00, 08:00, 16:00 Asia/Shanghai
+    - cron: "0 0,8,16 * * *"
   workflow_dispatch:
 
 permissions:
@@ -18,6 +18,7 @@ jobs:
     env:
       NEWS_MAX_ITEMS: ${{ vars.NEWS_MAX_ITEMS || '12' }}
       NEWS_MAX_ITEMS_PER_SOURCE: ${{ vars.NEWS_MAX_ITEMS_PER_SOURCE || '3' }}
+      NEWS_LOOKBACK_HOURS: ${{ vars.NEWS_LOOKBACK_HOURS || '8' }}
       NEWS_RSS_TIMEOUT_MS: ${{ vars.NEWS_RSS_TIMEOUT_MS || '10000' }}
       CODEX_NEWS_ARTICLE_LENGTH: ${{ vars.CODEX_NEWS_ARTICLE_LENGTH || '1200-1800 Chinese characters' }}
       CODEX_NEWS_TARGET_DIR: ${{ vars.CODEX_NEWS_TARGET_DIR || 'content/articles' }}
@@ -44,17 +45,25 @@ jobs:
           script: |
             const fs = require("node:fs");
 
-            function shanghaiDate() {
-              return new Intl.DateTimeFormat("sv-SE", {
+            function shanghaiSlot() {
+              const parts = new Intl.DateTimeFormat("sv-SE", {
                 timeZone: "Asia/Shanghai",
                 year: "numeric",
                 month: "2-digit",
                 day: "2-digit",
-              }).format(new Date());
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              }).formatToParts(new Date());
+              const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+              const hour = Number(values.hour) === 24 ? 0 : Number(values.hour);
+              const slotHour = String(Math.floor(hour / 8) * 8).padStart(2, "0");
+
+              return `${values.year}-${values.month}-${values.day} ${slotHour}:00`;
             }
 
             const { owner, repo } = context.repo;
-            const title = `Daily AI Article Request - ${shanghaiDate()}`;
+            const title = `AI Briefing Request - ${shanghaiSlot()} UTC+8`;
             const body = fs.readFileSync("codex-news-issue.md", "utf8");
             const { data: issues } = await github.rest.issues.listForRepo({
               owner,

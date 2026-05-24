@@ -3,6 +3,7 @@ import { fetchAllNewsFeeds, NEWS_SOURCE_GUIDE } from "./lib/news";
 
 const maxItems = Number(process.env.NEWS_MAX_ITEMS || "12");
 const maxItemsPerSource = Number(process.env.NEWS_MAX_ITEMS_PER_SOURCE || "3");
+const lookbackHours = Number(process.env.NEWS_LOOKBACK_HOURS || "8");
 const rssTimeoutMs = Number(process.env.NEWS_RSS_TIMEOUT_MS || "10000");
 const articleLength = process.env.CODEX_NEWS_ARTICLE_LENGTH || "1200-1800 Chinese characters";
 const targetDir = process.env.CODEX_NEWS_TARGET_DIR || "content/articles";
@@ -41,7 +42,12 @@ function renderPrompt(
 
 async function main() {
   const today = formatDate(new Date());
-  const items = await fetchAllNewsFeeds({ maxItems, maxItemsPerSource, rssTimeoutMs });
+  const items = await fetchAllNewsFeeds({
+    lookbackHours,
+    maxItems,
+    maxItemsPerSource,
+    rssTimeoutMs,
+  });
   const candidates =
     items.length > 0
       ? items
@@ -54,7 +60,7 @@ async function main() {
 `,
           )
           .join("\n")
-      : "No RSS candidates were found today. If you proceed, use reputable public AI sources and include source links.";
+      : `No RSS candidates were found in the past ${lookbackHours} hours. Do not create a PR unless you can verify reputable AI sources from this exact time window.`;
   const sourceGuide = NEWS_SOURCE_GUIDE.map((item) => `- ${item}`).join("\n");
   const template = await readFile(promptPath, "utf8");
 

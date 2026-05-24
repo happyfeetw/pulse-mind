@@ -38,6 +38,7 @@ interface OpenAIRequestBody {
 
 const rssTimeoutMs = Number(process.env.NEWS_RSS_TIMEOUT_MS || "10000");
 const dryRun = process.argv.includes("--dry-run");
+const lookbackHours = Number(process.env.NEWS_LOOKBACK_HOURS || "8");
 const maxItems = Number(process.env.NEWS_MAX_ITEMS || "5");
 const maxItemsPerSource = Number(process.env.NEWS_MAX_ITEMS_PER_SOURCE || "3");
 const shouldPublish = process.env.PUBLISH_NEWS !== "false";
@@ -203,7 +204,12 @@ async function publishArticle(news: NewsItem, rewritten: RewriteResult) {
 }
 
 async function main() {
-  const items = await fetchAllNewsFeeds({ maxItems, maxItemsPerSource, rssTimeoutMs });
+  const items = await fetchAllNewsFeeds({
+    lookbackHours,
+    maxItems,
+    maxItemsPerSource,
+    rssTimeoutMs,
+  });
   console.log(`Fetched ${items.length} candidate items`);
 
   if (dryRun) {

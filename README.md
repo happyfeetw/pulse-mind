@@ -51,11 +51,11 @@ The Codex Cloud article prompt is maintained in `docs/prompts/codex-ai-briefing.
 
 ## Content Workflow
 
-Daily AI briefings are generated as Markdown files under `content/articles/`. The candidate pool combines official AI company feeds, Hacker News, The Verge AI, TechCrunch AI, QbitAI, arXiv, Hugging Face, and BestBlogs.dev so the output can cover news, engineering practice, tools, startups, and research signals.
+AI briefings are generated as Markdown files under `content/articles/`. The scheduled workflow runs at 00:00, 08:00, and 16:00 Asia/Shanghai and collects candidates from the previous 8 hours. The candidate pool combines official AI company feeds, Hacker News, The Verge AI, TechCrunch AI, QbitAI, arXiv, Hugging Face, and BestBlogs.dev so the output can cover news, engineering practice, tools, startups, and research signals.
 
 The preferred production flow is:
 
-1. `Daily Codex News Request` creates or updates a daily GitHub issue with RSS candidates.
+1. `Daily Codex News Request` creates or updates a scheduled GitHub issue with RSS candidates.
 2. Codex Cloud creates a PR containing exactly one Markdown file under `content/articles/`.
 3. `Codex News PR` validates the Markdown, lint, and build.
 4. After merge to `main`, `Publish Articles` validates Markdown and imports it through the production HTTPS import webhook.

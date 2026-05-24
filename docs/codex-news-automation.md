@@ -2,7 +2,7 @@
 
 这个方案不使用 OpenAI API 额度。流程是：
 
-1. GitHub Actions 每天抓取 RSS 候选源，并创建一个包含 `@codex` 的 issue。
+1. GitHub Actions 每天北京时间 `00:00`、`08:00`、`16:00` 抓取过去 8 小时内的 RSS 候选源，并创建一个包含 `@codex` 的 issue。
 2. Codex Cloud 根据 issue 创建文章 PR，只提交 `content/articles/*.md`。
 3. PR workflow 校验 Markdown、运行 lint/build，并可选自动合并。
 4. PR 合并到 `main` 后，发布 workflow 校验 Markdown，并通过线上站点的内部 HTTPS webhook 导入生产数据库。
@@ -43,8 +43,9 @@
 
 进入 `Settings -> Secrets and variables -> Actions -> Variables`，可选添加：
 
-- `NEWS_MAX_ITEMS`：每天候选新闻数量，默认 `12`。
+- `NEWS_MAX_ITEMS`：每次运行的候选新闻数量，默认 `12`。
 - `NEWS_MAX_ITEMS_PER_SOURCE`：每个来源最多进入候选池的数量，默认 `3`，用于避免单个高频来源刷屏。
+- `NEWS_LOOKBACK_HOURS`：每次运行向前回看的小时数，默认 `8`。
 - `NEWS_RSS_TIMEOUT_MS`：RSS 请求超时，默认 `10000`。
 - `CODEX_NEWS_ARTICLE_LENGTH`：文章长度要求，默认 `1200-1800 Chinese characters`。
 - `CODEX_NEWS_TARGET_DIR`：文章目录，默认 `content/articles`。
@@ -56,7 +57,7 @@
 
 ## Codex 任务提示词
 
-每日 issue 的正文由 `scripts/prepare-codex-news-issue.ts` 生成，提示词模板保存在：
+每次定时任务的 issue 正文由 `scripts/prepare-codex-news-issue.ts` 生成，提示词模板保存在：
 
 ```text
 docs/prompts/codex-ai-briefing.md
@@ -68,7 +69,7 @@ docs/prompts/codex-ai-briefing.md
 - `{{TARGET_DIR}}`：文章目录。
 - `{{ARTICLE_LENGTH}}`：文章长度要求。
 - `{{SOURCE_GUIDE}}`：信息源说明。
-- `{{CANDIDATES}}`：当天 RSS 候选源列表。
+- `{{CANDIDATES}}`：定时任务窗口内的 RSS 候选源列表。
 
 修改提示词后，先用下面命令预览最终 issue 正文：
 
@@ -100,7 +101,7 @@ npm run --silent news:codex-issue
 npm run news:codex-issue
 ```
 
-手动触发每日 issue：
+手动触发定时 issue：
 
 1. 打开 GitHub 仓库 `Actions`。
 2. 选择 `Daily Codex News Request`。

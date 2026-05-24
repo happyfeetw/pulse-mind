@@ -15,6 +15,7 @@ export interface NewsItem {
 }
 
 interface FetchNewsOptions {
+  lookbackHours?: number;
   maxItems?: number;
   maxItemsPerSource?: number;
   rssTimeoutMs?: number;
@@ -159,13 +160,17 @@ async function fetchSource(source: RssSource, rssTimeoutMs: number): Promise<New
 }
 
 export async function fetchAllNewsFeeds(options: FetchNewsOptions = {}): Promise<NewsItem[]> {
+  const lookbackHours = options.lookbackHours;
   const maxItems = options.maxItems ?? 5;
   const maxItemsPerSource = options.maxItemsPerSource ?? 3;
   const rssTimeoutMs = options.rssTimeoutMs ?? 10000;
+  const since =
+    lookbackHours && lookbackHours > 0 ? Date.now() - lookbackHours * 60 * 60 * 1000 : null;
   const results = await Promise.all(RSS_SOURCES.map((source) => fetchSource(source, rssTimeoutMs)));
   const items = results.flatMap((itemsForSource) =>
     itemsForSource
       .filter(isAiRelevant)
+      .filter((item) => !since || item.publishedAt.getTime() >= since)
       .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
       .slice(0, maxItemsPerSource),
   );
