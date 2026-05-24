@@ -7,7 +7,18 @@ BRANCH="${PULSE_MIND_BRANCH:-main}"
 cd "$APP_DIR"
 
 before="$(git rev-parse HEAD)"
-git fetch origin "$BRANCH"
+for attempt in 1 2 3; do
+  if git fetch origin "$BRANCH"; then
+    break
+  fi
+
+  if [ "$attempt" = 3 ]; then
+    echo "git fetch failed after $attempt attempts"
+    exit 1
+  fi
+
+  sleep "$((attempt * 5))"
+done
 after="$(git rev-parse "origin/$BRANCH")"
 
 if [ "$before" = "$after" ]; then
