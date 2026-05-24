@@ -35,12 +35,13 @@ const RSS_SOURCES: RssSource[] = [
 ];
 
 export const NEWS_SOURCE_GUIDE = [
-  "Hacker News: 看全球工程师、创业者正在讨论的新工具、新论文、新产品和技术争议。",
-  "The Verge AI: 关注 AI 产品、公司动态、行业争议、科技趋势，以及 AI 对普通用户和商业世界的影响。",
-  "TechCrunch AI: 偏创业、融资、产品和公司层面，适合观察 AI 创业方向、资本关注点和新公司动态。",
-  "QbitAI: 中文 AI 前沿资讯入口，适合跟进国内外模型、应用、论文和公司动态。",
-  "arXiv cs.AI/cs.CL: 更接近技术源头，用摘要、方法、实验和结论抓研究重点。",
-  "BestBlogs.dev: 发现高质量技术博客，补充新闻之外的工程师、研究员和创业者长文经验。",
+  "Hacker News: 优先选全球工程师、创业者正在讨论的 AI 工具、论文、开源项目、开发者工作流和技术争议；跳过只有情绪或八卦价值的讨论。",
+  "The Verge AI: 只在产品、安全、平台政策或行业争议对 AI 应用开发、数据使用、权限边界、用户体验设计有工程启发时采用；跳过纯消费产品评论。",
+  "TechCrunch AI: 只在创业产品、平台、API、SDK、基础设施、定价、部署方式或商业化路径对开发者有参考价值时采用；跳过纯融资新闻。",
+  "QbitAI: 优先选国内外模型、Agent、框架、论文、工程实践和开发者工具的技术细节；跳过只有公司动态或热闹标题的内容。",
+  "arXiv cs.AI/cs.CL: 重点抓可复用的方法、评测、限制和潜在工程影响；只选 6-12 个月内可能影响模型应用、Agent、RAG、推理或开发工具的论文。",
+  "BestBlogs.dev: 优先选工程师、研究员和创业者的高质量 AI 技术博客，尤其是带实现细节、架构取舍、踩坑经验、评测方法或可复现实验的长文。",
+  "OpenAI、DeepMind、Hugging Face: 优先选官方模型、API、SDK、开源框架、评测和平台更新中对软件工程实践有直接影响的内容。",
 ];
 
 const AI_KEYWORD_PATTERNS = [
@@ -78,6 +79,82 @@ const STRICT_AI_KEYWORD_PATTERNS = AI_KEYWORD_PATTERNS.filter(
   (pattern) => pattern.source !== "\\bai\\b",
 );
 
+const ENGINEERING_KEYWORD_PATTERNS = [
+  /software engineer/i,
+  /developer/i,
+  /coding/i,
+  /code review/i,
+  /test generation/i,
+  /\bide\b/i,
+  /\bsdk\b/i,
+  /\bapi\b/i,
+  /\bmcp\b/i,
+  /\brag\b/i,
+  /\bevals?\b/i,
+  /benchmark/i,
+  /open source/i,
+  /github/i,
+  /tool use/i,
+  /browser agent/i,
+  /web agent/i,
+  /agent/i,
+  /inference/i,
+  /latency/i,
+  /serving/i,
+  /deployment/i,
+  /observability/i,
+  /orchestration/i,
+  /workflow/i,
+  /debugging/i,
+  /security/i,
+  /prompt injection/i,
+  /jailbreak/i,
+  /data leakage/i,
+  /supply chain/i,
+  /permission/i,
+  /软件工程/,
+  /工程师/,
+  /开发者/,
+  /编程/,
+  /代码/,
+  /代码审查/,
+  /测试生成/,
+  /测试/,
+  /调试/,
+  /开发工具/,
+  /开发者工具/,
+  /开源/,
+  /框架/,
+  /基准/,
+  /评测/,
+  /工具调用/,
+  /智能体/,
+  /浏览器智能体/,
+  /推理成本/,
+  /推理延迟/,
+  /部署/,
+  /可观测/,
+  /编排/,
+  /工作流/,
+  /提示注入/,
+  /越狱/,
+  /数据泄露/,
+  /供应链/,
+  /权限边界/,
+  /安全/,
+];
+
+const ENGINEERING_SOURCE_WEIGHTS = new Map<string, number>([
+  ["BestBlogs.dev", 4],
+  ["Hacker News AI", 3],
+  ["Hugging Face", 3],
+  ["OpenAI", 2],
+  ["DeepMind", 2],
+  ["arXiv cs.AI", 2],
+  ["arXiv cs.CL", 2],
+  ["QbitAI", 1],
+]);
+
 export function formatError(error: unknown) {
   if (error instanceof Error) {
     return `${error.name}: ${error.message}`;
@@ -103,6 +180,17 @@ function isAiRelevant(item: NewsItem) {
   }
 
   return AI_KEYWORD_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+function getEngineeringRelevanceScore(item: NewsItem) {
+  const text = `${item.title} ${item.content}`;
+  const keywordScore = ENGINEERING_KEYWORD_PATTERNS.reduce(
+    (score, pattern) => score + (pattern.test(text) ? 1 : 0),
+    0,
+  );
+  const sourceWeight = ENGINEERING_SOURCE_WEIGHTS.get(item.source) ?? 0;
+
+  return keywordScore > 0 ? sourceWeight + keywordScore : Math.min(sourceWeight, 1);
 }
 
 async function parseFeed(source: RssSource, rssTimeoutMs: number) {
@@ -171,11 +259,19 @@ export async function fetchAllNewsFeeds(options: FetchNewsOptions = {}): Promise
     itemsForSource
       .filter(isAiRelevant)
       .filter((item) => !since || item.publishedAt.getTime() >= since)
-      .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
+      .sort(
+        (a, b) =>
+          getEngineeringRelevanceScore(b) - getEngineeringRelevanceScore(a) ||
+          b.publishedAt.getTime() - a.publishedAt.getTime(),
+      )
       .slice(0, maxItemsPerSource),
   );
 
   return items
-    .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
+    .sort(
+      (a, b) =>
+        getEngineeringRelevanceScore(b) - getEngineeringRelevanceScore(a) ||
+        b.publishedAt.getTime() - a.publishedAt.getTime(),
+    )
     .slice(0, maxItems);
 }

@@ -1,16 +1,20 @@
-@codex Please create today's PulseMind AI briefing as a pull request.
+@codex Please create today's PulseMind AI engineering briefing as a pull request.
 
 Date: {{TODAY}}
 
 Goal:
-Create a high-signal Chinese AI briefing that helps readers quickly understand the latest, most useful, and highest-quality AI developments across:
-- Global and Chinese AI news
-- Real-world AI engineering practices in companies and industries
-- Practical AI tools, products, workflows, and developer platforms
-- Research or paper signals that may affect products, engineering, or industry direction
+Create a high-signal Chinese AI engineering briefing for software engineers. It should help readers quickly understand the latest AI developments that affect how engineers build, ship, operate, evaluate, and secure software.
+
+Focus areas:
+- AI coding agents, IDEs, code review, test generation, and developer workflows
+- Agent engineering, MCP, tool use, browser/web agents, RAG, memory, evals, observability, and orchestration
+- Model serving, inference cost, latency, deployment, model routing, and production reliability
+- Open-source AI frameworks, SDKs, APIs, benchmarks, and engineering case studies
+- Security issues engineers must understand, such as prompt injection, jailbreaks, data leakage, supply chain risk, and permission boundaries
+- Research only when it has plausible engineering impact within 6-12 months
 
 Audience:
-Chinese readers who care about AI products, engineering practice, developer tools, startups, and industry adoption. They do not want generic AI hype. They want concise, useful, source-grounded information that helps them decide what to read, try, or pay attention to.
+Chinese software engineers, engineering managers, technical founders, and AI application builders. They care about practical technical signal: what changed, what is worth trying, what risk to watch, and what engineering idea can be reused. They do not want general AI business news, consumer product commentary, funding summaries, or broad industry trend essays unless there is a direct engineering implication.
 
 Task:
 Create exactly one Markdown article under `{{TARGET_DIR}}/`, named:
@@ -25,35 +29,41 @@ Length:
 {{ARTICLE_LENGTH}}.
 
 Article type:
-This is an AI briefing / curated digest, not a broad opinion essay and not a press release rewrite.
+This is an AI engineering briefing / curated technical digest, not a broad opinion essay, company news roundup, funding digest, or press release rewrite.
 
 Source selection:
-- Select 3 to 5 items from the candidate sources.
-- Do not force all sources into one abstract theme.
+- Candidate sources are roughly pre-ranked by software-engineering relevance first and recency second. Treat the order as a hint, not as proof of quality.
+- Select 2 to 4 items from the candidate sources.
+- Select fewer items if only a few are genuinely relevant to software engineers.
+- Prefer a coherent technical thread over broad coverage. Do not write a scattered roundup.
 - Do not include a source only because the company is famous.
-- Prioritize sources with concrete usefulness:
-  - new AI products, tools, models, or developer platforms
-  - engineering practices with measurable outcomes
-  - real company or industry AI adoption cases
-  - startup, funding, product, or market signals
-  - infrastructure, evaluation, safety, provenance, deployment, or workflow changes
-  - research papers with practical product or engineering implications
-- If a source is weak, repetitive, sensational, or lacks concrete information, skip it.
+- Include a source only if a software engineer can learn at least one of the following:
+  - a tool, API, framework, SDK, benchmark, or architecture worth trying
+  - a production engineering lesson about reliability, cost, latency, evals, observability, safety, or deployment
+  - a concrete workflow change for coding, testing, review, debugging, documentation, or operations
+  - a security or governance risk that changes how engineers should design AI systems
+  - a research result that points to an implementable technique or near-term platform shift
+- Deprioritize or skip:
+  - consumer AI product reviews without engineering detail
+  - funding, IPO, or valuation news without technical substance
+  - company strategy stories without developer impact
+  - sensational controversy without an engineering lesson
+  - vague "AI changes everything" commentary
 
 Required article structure:
 1. Opening paragraph:
-   - Briefly state what today's briefing covers.
+   - Briefly state the engineering thread tying the selected items together.
    - Do not make grand claims like "AI is entering a new era".
 2. Main sections:
-   - Use 3 to 5 short sections.
+   - Use 2 to 4 short sections.
    - Each section covers exactly one selected item.
    - Each section must answer:
      - What happened?
-     - Why does it matter?
-     - Who should care?
-     - What is the practical takeaway?
+     - What is the engineering detail?
+     - Why should software engineers care?
+     - What should readers try, monitor, avoid, or read next?
 3. Closing paragraph:
-   - Summarize the actionable signal for readers.
+   - Summarize the actionable engineering signal for readers.
    - Do not end with generic optimism.
 
 Source grounding:
@@ -63,10 +73,12 @@ Source grounding:
 - If the source page is unavailable or unclear, do not use that item.
 - Prefer concrete facts over interpretation.
 - When discussing research, focus on the problem, method, result, limitation, and possible practical impact.
+- If a source lacks enough technical detail, say less about it or skip it.
 
 Style:
 - Clear, concise, editorial.
-- Write like an informed technical editor, not a marketing writer.
+- Write like an informed engineering editor, not a marketing writer or industry analyst.
+- Use engineering vocabulary only when it clarifies the point. Avoid jargon-padding.
 - Avoid hype, slogans, and vague abstractions.
 - Avoid these phrases unless backed by concrete facts:
   - 赋能
@@ -79,6 +91,7 @@ Style:
   - 引领未来
 - Avoid listing company names without explaining the concrete value.
 - Every paragraph should contain at least one specific fact, tool, company, product, metric, scenario, engineering practice, or research result.
+- Every main section should end with a concrete takeaway for engineers.
 
 Frontmatter:
 Use this shape:
@@ -103,21 +116,22 @@ Title requirements:
 - The title should describe the briefing's actual content.
 - Avoid vague titles like "AI 行业正在发生变化".
 - Prefer concrete titles, for example:
-  - "今日 AI 简报：AWS MCP、Google 搜索 AI 与视频生成工具"
-  - "AI 工程实践观察：MCP、RAG 评测与企业落地案例"
+  - "AI 工程简报：Webwright、AWS MCP 与 Agent 安全边界"
+  - "软件工程师 AI 简报：浏览器智能体、MCP 治理与推理成本"
 
 Source guide:
 {{SOURCE_GUIDE}}
 
 Self-review before opening the PR:
-- Does this help readers quickly understand useful AI developments?
-- Are 3 to 5 items clearly separated?
-- Does each selected item have a practical takeaway?
+- Is this clearly written for software engineers?
+- Are 2 to 4 selected items technically relevant rather than merely newsworthy?
+- Is there a coherent engineering thread instead of a scattered roundup?
+- Does each selected item have a practical engineering takeaway?
 - Are all factual claims grounded in the provided sources?
 - Did it avoid generic trend commentary?
 - Did it avoid marketing language?
 - Did it only edit `{{TARGET_DIR}}/**/*.md`?
-- If the result reads like a generic trend essay, revise it before opening the PR. The final article should feel like a curated briefing written by a technical editor.
+- If the result reads like a generic AI news roundup or business trend essay, revise it before opening the PR. The final article should feel like a curated technical briefing written by an engineering editor.
 
 Validation:
 Run:
