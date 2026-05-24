@@ -48,10 +48,33 @@
 - `NEWS_RSS_TIMEOUT_MS`：RSS 请求超时，默认 `10000`。
 - `CODEX_NEWS_ARTICLE_LENGTH`：文章长度要求，默认 `1200-1800 Chinese characters`。
 - `CODEX_NEWS_TARGET_DIR`：文章目录，默认 `content/articles`。
+- `CODEX_NEWS_PROMPT_PATH`：Codex 任务提示词模板路径，默认 `docs/prompts/codex-ai-briefing.md`。
 - `AUTO_MERGE_CODEX_NEWS`：设为 `true` 后，纯文章 PR 在校验通过后会自动 squash merge。
 - `ARTICLE_IMPORT_URL`：可选，默认可使用 `https://blog.badger-tech.fun/api/internal/articles/import`。
 
 建议先不启用 `AUTO_MERGE_CODEX_NEWS`。手动观察 2-3 天后，如果内容质量稳定，再设为 `true`。
+
+## Codex 任务提示词
+
+每日 issue 的正文由 `scripts/prepare-codex-news-issue.ts` 生成，提示词模板保存在：
+
+```text
+docs/prompts/codex-ai-briefing.md
+```
+
+模板使用以下占位符，由脚本在运行时替换：
+
+- `{{TODAY}}`：上海时区日期。
+- `{{TARGET_DIR}}`：文章目录。
+- `{{ARTICLE_LENGTH}}`：文章长度要求。
+- `{{SOURCE_GUIDE}}`：信息源说明。
+- `{{CANDIDATES}}`：当天 RSS 候选源列表。
+
+修改提示词后，先用下面命令预览最终 issue 正文：
+
+```bash
+npm run --silent news:codex-issue
+```
 
 ## 当前信息源
 

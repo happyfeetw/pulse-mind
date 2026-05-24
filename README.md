@@ -47,6 +47,8 @@ npm run news:fetch -- --dry-run
 
 Use `npm run articles:check` for content-only changes. Use `npm run news:codex-issue` to preview the GitHub issue body that asks Codex Cloud to create the daily AI article PR.
 
+The Codex Cloud article prompt is maintained in `docs/prompts/codex-ai-briefing.md`.
+
 ## Content Workflow
 
 Daily AI briefings are generated as Markdown files under `content/articles/`. The candidate pool combines official AI company feeds, Hacker News, The Verge AI, TechCrunch AI, QbitAI, arXiv, Hugging Face, and BestBlogs.dev so the output can cover news, engineering practice, tools, startups, and research signals.
